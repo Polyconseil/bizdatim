@@ -10,7 +10,7 @@ setup(
     author="Sergiy Kuzmenko",
     author_email="sergiy@kuzmenko.org",
     url="https://bitbucket.org/shelldweller/python-bizdatetime",
-    packages=["bizdatetime"],
+    py_modules=["bizdatetime"],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
