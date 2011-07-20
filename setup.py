@@ -5,7 +5,7 @@ from distutils.core import setup
 setup(
     name="python-bizdatetime",
     version="0.1",
-    description="Module for performing simple business day arithmetics",
+    description="Module for performing simple business day arithmetic",
     long_description=open("README.txt").read(),
     author="Sergiy Kuzmenko",
     author_email="sergiy@kuzmenko.org",
