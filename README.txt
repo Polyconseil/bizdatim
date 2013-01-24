@@ -10,7 +10,7 @@ KNOWN LIMITATIONS
 Rotating weekends/holidays are not supported (e.g., two days working, third day
 off).
 
-Business hour arithmetic is not (yet) supported.
+The business hour arithmetic is limited to additions.
 
 
 DEFINITIONS
@@ -25,8 +25,11 @@ Holiday
     not have weekly regularity. It is just a date. Holiday can coincide with
     weekend.
 
+Working hours
+    The starting and ending time of a business day.
+
 Policy
-    Is a (possibly empty) collection of holidays and holidays. All calculations
+    Is a (possibly empty) collection of weekends, holidays and working hours. All calculations
     are performed within a policy.
 
 
@@ -35,16 +38,21 @@ SAMPLE USAGE
 
 All business day arithmetic is performed in the context of policy::
     
-    from bizdatetime import *
-    from datetime import date
-    policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1),))
-    day = date(2011, 6, 29) # Wednesday
-    print policy.add(day, 2) # add 2 business dates -> Monday after the long weekend
-    print policy.biz_day_delta(date(2011, 7, 4), date(2011, 6, 30)) # one holiday, one weekend between
+>>> from bizdatetime import *
+>>> from datetime import date
+>>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1),))
+>>> day = date(2011, 6, 29) # Wednesday
+>>> print policy.add(day, 2) # add 2 business dates -> Monday after the long weekend
+datetime.date(2011, 7, 4)
+>>> print policy.biz_day_delta(date(2011, 7, 4), date(2011, 6, 30)) # one holiday, one weekend between
+1
 
-The output of the above program will be::
-
-    datetime.date(2011, 7, 4)
-    1
+There is also the possibility to do arithmetic on business hours::
+>>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1)), hours=(time(8), time(20)))
+>>> day = datetime(2011, 6, 29, 14, 30)
+>>> policy.add(day, timedelta(days=1, hours=5)) # The day after, in the afternoon
+datetime.datetime(2011, 6, 29, 19, 30)
+>>> policy.add(day, timedelta(days=1, hours=10)) # Too many hours, will finish the monday after the long weekend
+datetime.datetime(2011, 7, 4, 12, 30)
 
 Policy method docstrings contain more examples.

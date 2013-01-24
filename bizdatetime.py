@@ -22,7 +22,12 @@ FRI = 4
 SAT = 5
 SUN = 6
 
-from datetime import timedelta
+from datetime import datetime, time, timedelta
+
+
+def set_time(day, hour):
+    """Set the time of the day to the given hour."""
+    return day.replace(hour=hour.hour, minute=hour.minute, second=hour.second)
 
 
 class Policy(object):
@@ -31,12 +36,22 @@ class Policy(object):
     business day arithmetics are done in teh context of Policy.
     """
 
-    def __init__(self, weekends=None, holidays=None):
+    def __init__(self, weekends=None, holidays=None, hours=None):
+        """Initialise the class.
+
+        Args:
+            weekends: list or tuple, a days to consider in the weekend.
+            holidays: list or tuple, all the holidays.
+            hours: list or tuple of datetime.time, when work begins and ends during a day.
+        """
         if len(weekends) > 6:
             raise AssertionError("Too many weekends per week")
+        if hours is not None and len(hours) != 2:
+            raise AssertionError("Working hours must specify a beginning and an end")
         self.weekends = weekends or []
         self._holidays = []
         self._set_holidays(holidays)
+        self.hours = hours
 
     def _get_holidays(self):
         return self._holidays
@@ -102,11 +117,30 @@ class Policy(object):
         """
         return self.is_weekend(day) or self.is_holiday(day)
 
+    def is_not_in_business_hours(self, day):
+        """ Returns if the datetime is not in business hours.
+
+        >>> policy = Policy(hours=(time(8, 30), time(20, 30)))
+        >>> policy.is_not_in_business_hours(datetime(2011, 7, 1, 8, 0, 0))
+        True
+        >>> policy.is_not_in_business_hours(datetime(2011, 7, 1, 15, 0, 0))
+        False
+        """
+        if self.hours is None:
+            return False
+
+        if self.hours[0] < self.hours[1]:
+            return day.time() < self.hours[0] or day.time() > self.hours[1]
+        else:
+            return day.time() < self.hours[0] and day.time() > self.hours[1]
+
     def closest_biz_day(self, day, forward=True):
         """If the given date falls on a weekend or holiday, returns the closest
         business day. Otherwise the original date is returned. If forward is
         True (default) the returned date will be next closest business date.
         Otherwise closest previous business date will be retured.
+
+        It does not check for the hour.
 
         >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,  7,  1), ))
         >>> policy.closest_biz_day(date(2011, 6, 30)) # regular business day
@@ -142,6 +176,11 @@ class Policy(object):
             return self.holidays_between(day2, day1)
         if day1 == day2:
             return 0
+        if isinstance(day1, datetime):
+            day1 = day1.date()
+        if isinstance(day2, datetime):
+            day2 = day2.date()
+
         n = 0
         #FIXME: should probably use bisect here
         for h in self._holidays:
@@ -155,28 +194,72 @@ class Policy(object):
                     n += 1
         return n
 
-    def add(self, day, delta):
+    def add_seconds(self, day, seconds):
+        """Adds the given seconds to the day.
+
+        It is mainly intended as a helper for the add function but can be called from outside.
+
+        Args:
+            day: datetime.datetime, the given day.
+            seconds: integer, the number of seconds to add.
+
+        >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1)), hours=(time(8), time(20)))
+        >>> day = datetime(2011, 6, 30, 14, 30)
+        >>> policy.add_seconds(day, 3600) # One hour after
+        datetime.datetime(2011, 6, 30, 15, 30)
+        >>> policy.add(day, 36000) # The next working day
+        datetime.datetime(2011, 7, 4, 12, 30)
         """
-        Adds the number of business days specified by delta to the given day.
-        Delta can be a timedelta object or an integer. Delta can also be negative.
+        if self.hours is None:
+            if self.is_day_off(day):
+                day = set_time(day, time())
+            return self.closest_biz_day(day + timedelta(seconds=seconds))
+
+        begin_hours = self.hours[0]
+        end_hours = self.hours[1]
+
+        # Put us in business hours
+        if self.is_day_off(day):
+            day = set_time(day, begin_hours)
+            day = self.closest_biz_day(day, forward=True)
+
+        elif self.is_not_in_business_hours(day):
+            if day.time() > begin_hours:
+                day += timedelta(days=1)
+            day = set_time(day, begin_hours)
+
+        # Fill the current day
+        end_of_day = set_time(day, end_hours)
+        if day.time() > end_hours:
+            end_of_day += timedelta(days=1)
+        seconds_in_day = (end_of_day - day).seconds
+
+        if seconds <= seconds_in_day:
+            # All the seconds are in the current day
+            return day + timedelta(seconds=seconds)
+        else:
+            # Move to next day
+            if not (day.time() < begin_hours):
+                day += timedelta(days=1)
+            next_day = set_time(day, begin_hours)
+            return self.add_seconds(next_day, seconds - seconds_in_day)
+
+    def add_days(self, day, days):
+        """Adds the given number of days.
+
+        Args:
+            day: datetime.datetime, the given day.
+            days: integer, the number of days to add, possibly negative.
 
         >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1), date(2011,8,1)))
         >>> day = date(2011, 6, 29) # Wednesday
-        >>> policy.add(day, 2) # Monday after the long weekend
+        >>> policy.add_days(day, 2) # Monday after the long weekend
         datetime.date(2011, 7, 4)
-        >>> policy.add(day, 22) # Spanning two holidays and several weekends
+        >>> policy.add_days(day, 22) # Spanning two holidays and several weekends
         datetime.date(2011, 8, 2)
-        >>> policy.add(day, -10) # 10 business days (2 weeks) ago
+        >>> policy.add_days(day, 10, reverse=True) # 10 business days (2 weeks) ago
         datetime.date(2011, 6, 15)
         """
-
-        if isinstance(delta, timedelta):
-            days = delta.days
-        else:
-            days = int(delta)
-        if days == 0:
-            return day
-
         if days < 0:
             sign = -1
             look_forward = False
@@ -204,6 +287,38 @@ class Policy(object):
             return self.add(new_date, days_add * sign)
         else:
             return self.closest_biz_day(new_date, look_forward)
+
+    def add(self, day, delta):
+        """Adds a timedelta to the day, taking care of business days.
+
+        Delta should be a timedelta object, possibly negative.
+        For backwards compatibility, it can also be an integer representing a number of days.
+
+        >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1), date(2011,8,1)))
+        >>> day = date(2011, 6, 29) # Wednesday
+        >>> policy.add(day, timedelta(days=2)) # Monday after the long weekend
+        datetime.date(2011, 7, 4)
+        >>> policy.add(day, timedelta(days=22)) # Spanning two holidays and several weekends
+        datetime.date(2011, 8, 2)
+        >>> policy.add(day, timedelta(days=10), reverse=True) # 10 business days (2 weeks) ago
+        datetime.date(2011, 6, 15)
+
+        >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1)), hours=(time(8), time(20)))
+        >>> day = datetime(2011, 6, 29, 14, 30)
+        >>> policy.add(day, timedelta(days=1, hours=5)) # The day after, in the afternoon
+        datetime.datetime(2011, 6, 29, 19, 30)
+        >>> policy.add(day, timedelta(days=1, hours=10)) # Too many hours, will finish the monday after the long weekend
+        datetime.datetime(2011, 7, 4, 12, 30)
+        """
+
+        if isinstance(delta, int):
+            delta = timedelta(days=delta)
+
+        if isinstance(day, datetime):
+            # Add hours only if the given day is a datetime
+            day = self.add_seconds(day, delta.seconds)
+
+        return self.add_days(day, delta.days)
 
     def weekends_between(self, day1, day2):
         """
