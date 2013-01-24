@@ -2,16 +2,16 @@
 A class for calculating business date deltas based on a policy.
 
 Definitions:
-    
+
     Weekend - a day off reoccurring on a weekly basis (no shifting weekends
     supported)
-    
+
     Holiday - a special day off. The app is agnostic as to how holidays reoccur.
     It expects a list of date instances that represent a sequence of holidays
     within the desired range.
-    
+
     Policy - a definition of weekends and holidays.
-    
+
 """
 
 MON = 0
@@ -22,41 +22,37 @@ FRI = 4
 SAT = 5
 SUN = 6
 
-from datetime import date, datetime, timedelta
+from datetime import timedelta
+
 
 class Policy(object):
     """
     Policy class defined holidays and weekends. All calculations related to
     business day arithmetics are done in teh context of Policy.
     """
-    
-    def __init__(self, weekends=[], holidays=[]):
+
+    def __init__(self, weekends=None, holidays=None):
         if len(weekends) > 6:
             raise AssertionError("Too many weekends per week")
-        self.weekends = weekends
+        self.weekends = weekends or []
         self._holidays = []
-        #holidays
         self._set_holidays(holidays)
-    
-    
+
     def _get_holidays(self):
         return self._holidays
-    
-    
+
     def _set_holidays(self, holidays):
         if holidays:
             self._holidays = list(holidays)
             self._holidays.sort()
         else:
             self._holidays = []
-    
-    
+
     holidays = property(_get_holidays, _set_holidays)
-    
-    
+
     def is_empty(self):
         """ Returns True is policy has no weekends or holidays.
-        
+
         >>> policy = Policy()
         >>> policy.is_empty()
         True
@@ -65,11 +61,10 @@ class Policy(object):
         False
         """
         return not (self.weekends or self._holidays)
-    
-    
+
     def is_weekend(self, day):
         """ Returns True only if the day falls on a weekend.
-        
+
         >>> policy = Policy(weekends=(SAT, SUN))
         >>> policy.is_weekend(date(2011, 7, 1)) # Friday
         False
@@ -81,7 +76,7 @@ class Policy(object):
         False
         """
         return day.weekday() in self.weekends
-    
+
     def is_holiday(self, day):
         """ Returns true only if the day falls on a holiday.
         >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,  7,  1),))
@@ -91,10 +86,10 @@ class Policy(object):
         False
         """
         return day in self._holidays
-    
+
     def is_day_off(self, day):
         """ Returns True if the day is either weekend or holiday.
-        
+
         >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,  7,  1), ))
         >>> policy.is_day_off(date(2011, 7, 1)) # Friday
         True
@@ -106,14 +101,13 @@ class Policy(object):
         False
         """
         return self.is_weekend(day) or self.is_holiday(day)
-    
-    
+
     def closest_biz_day(self, day, forward=True):
         """If the given date falls on a weekend or holiday, returns the closest
         business day. Otherwise the original date is returned. If forward is
         True (default) the returned date will be next closest business date.
         Otherwise closest previous business date will be retured.
-        
+
         >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,  7,  1), ))
         >>> policy.closest_biz_day(date(2011, 6, 30)) # regular business day
         datetime.date(2011, 6, 30)
@@ -121,9 +115,8 @@ class Policy(object):
         datetime.date(2011, 7, 4)
         >>> policy.closest_biz_day(date(2011, 7, 1), False) # Previous closest buisuness day
         datetime.date(2011, 6, 30)
-        
         """
-        
+
         if forward:
             delta = timedelta(days=1)
         else:
@@ -132,27 +125,26 @@ class Policy(object):
             day = day + delta
         return day
 
-    
     def holidays_between(self, day1, day2, skip_weekends=True):
         """
         Returns the number of holidays between two given dates, excluding
         boundaries. If skip_weekends is True (default) holidays occuring on
         weekends will not be counted.
-        
+
         >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,  7,  1), date(2011, 8, 1)))
         >>> policy.holidays_between(date(2011, 6, 12), date(2011, 9, 12))
         2
         >>> policy.holidays_between(date(2011,  7,  1), date(2011, 8, 1))
         0
         """
-        
+
         if day1 > day2:
             return self.holidays_between(day2, day1)
         if day1 == day2:
             return 0
         n = 0
         #FIXME: should probably use bisect here
-        for h in self._holidays: 
+        for h in self._holidays:
             if h > day1:
                 if h >= day2:
                     break
@@ -163,13 +155,11 @@ class Policy(object):
                     n += 1
         return n
 
-
-
     def add(self, day, delta):
         """
         Adds the number of business days specified by delta to the given day.
         Delta can be a timedelta object or an integer. Delta can also be negative.
-        
+
         >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1), date(2011,8,1)))
         >>> day = date(2011, 6, 29) # Wednesday
         >>> policy.add(day, 2) # Monday after the long weekend
@@ -179,21 +169,21 @@ class Policy(object):
         >>> policy.add(day, -10) # 10 business days (2 weeks) ago
         datetime.date(2011, 6, 15)
         """
-        
+
         if isinstance(delta, timedelta):
             days = delta.days
         else:
             days = int(delta)
         if days == 0:
             return day
-        
+
         if days < 0:
             sign = -1
             look_forward = False
         else:
             sign = 1
             look_forward = True
-        
+
         if self.weekends:
             weeklen = 7 - len(self.weekends)
             weeks_add = abs(days) / weeklen * sign
@@ -201,32 +191,31 @@ class Policy(object):
         else:
             weeks_add = 0
             days_add = days
-        
-        new_date = day + timedelta(days=weeks_add*7)
+
+        new_date = day + timedelta(days=weeks_add * 7)
         while days_add:
             # remaining days may or may not include weekends;
             new_date = new_date + timedelta(sign)
             if not self.is_weekend(new_date):
                 days_add -= 1
-            
-        days_add = self.holidays_between(day, new_date) # any holidays?
+
+        days_add = self.holidays_between(day, new_date)  # any holidays?
         if days_add:
-            return self.add(new_date, days_add*sign)
+            return self.add(new_date, days_add * sign)
         else:
             return self.closest_biz_day(new_date, look_forward)
-    
-    
+
     def weekends_between(self, day1, day2):
         """
         Returns the number of weekends between two dates, including upper boundary.
-        
+
         >>> policy = Policy(weekends=(SAT, SUN))
         >>> policy.weekends_between(date(2011, 6, 3), date(2011, 6, 15))
         4
         >>> policy.weekends_between(date(2011, 6, 4), date(2011, 6, 11)) # SAT to SAT
         2
         """
-        
+
         # FIXME: check about boundaries
         if day2 < day1:
             return self.weekends_between(day2, day1)
@@ -239,14 +228,13 @@ class Policy(object):
             if self.is_weekend(day):
                 n += 1
             extra -= 1
-        return  n
-
+        return n
 
     def biz_day_delta(self, day1, day2):
         """
         Returns the number of business days between day1 and day2, excluding
         boundaries.
-        
+
         >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,  7,  1),))
         >>> policy.biz_day_delta(date(2011, 7, 4), date(2011, 6, 30)) # one holiday, one weekend between
         1
@@ -255,9 +243,9 @@ class Policy(object):
         """
         if day2 < day1:
             return self.biz_day_delta(day2, day1)
-        
+
         delta = day2 - day1
-        
+
         return delta.days - self.weekends_between(day1, day2) - self.holidays_between(day1, day2)
 
 
