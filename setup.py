@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name="bizdatim",
-    version="0.2",
+    version="0.2.0",
     description="Module for performing simple business day arithmetic; forked from python-bizdatetime",
     license="MIT",
     long_description=open("README.rst").read(),

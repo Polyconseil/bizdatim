@@ -20,6 +20,8 @@ Definitions:
 
 from datetime import datetime, time, timedelta
 
+__version__ = '0.2.0'
+
 MON = 0
 TUE = 1
 WED = 2
