@@ -269,7 +269,7 @@ class Policy(object):
 
         if self.weekends:
             weeklen = 7 - len(self.weekends)
-            weeks_add = abs(days) / weeklen * sign
+            weeks_add = abs(days) // weeklen * sign
             days_add = abs(days) % weeklen * sign
         else:
             weeks_add = 0
@@ -335,7 +335,7 @@ class Policy(object):
         if day2 < day1:
             return self.weekends_between(day2, day1)
         delta = day2 - day1
-        weeks = delta.days / 7
+        weeks = delta.days // 7
         extra = delta.days % 7
         n = weeks * len(self.weekends)
         while extra:
