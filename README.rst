@@ -1,7 +1,28 @@
 ABOUT
 =====
 
+.. image:: https://secure.travis-ci.org/Polyconseil/bizdatim.png?branch=master
+    :target: http://travis-ci.org/Polyconseil/bizdatim/
+
+.. image:: https://img.shields.io/pypi/v/bizdatim.svg
+    :target: https://pypi.python.org.pypi/bizdatim/
+    :alt: Latest Version
+
+.. image:: https://img.shields.io/pypi/pyversions/bizdatim.svg
+    :target: https://pypi.python.org/pypi/bizdatim/
+    :alt: Supported Python versions
+
+.. image:: https://img.shields.io/pypi/wheel/bizdatim.svg
+    :target: https://pypi.python.org/pypi/bizdatim/
+    :alt: Wheel status
+
+.. image:: https://img.shields.io/pypi/l/bizdatim.svg
+    :target: https://pypi.python.org/pypi/bizdatim/
+    :alt: License
+
 bizdatim is a simple library for performing business day arithmetic.
+
+Source is hosted at https://github.com/Polyconseil/bizdatim.
 
 
 KNOWN LIMITATIONS
