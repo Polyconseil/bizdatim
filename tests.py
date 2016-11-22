@@ -81,7 +81,7 @@ class TestAddition(unittest.TestCase):
     def test_add_seconds(self):
         begin = time(8, 30)
         end = time(20, 30)
-        policy = Policy(weekends=(SAT, SUN), holidays=holidays, working_hours=(begin, end))
+        policy = Policy(weekends=(SAT, SUN), holidays=holidays, hours=(begin, end))
         # Nominal
         self.assertEqual(policy.add_seconds(datetime(2011, 3, 3, 8, 30), 3600), datetime(2011, 3, 3, 9, 30))
         # Before begin
@@ -96,7 +96,7 @@ class TestAddition(unittest.TestCase):
         self.assertEqual(policy.add_seconds(datetime(2011, 3, 4, 15, 30), 36000), datetime(2011, 3, 7, 13, 30))
 
     def test_add_seconds_no_working_hours(self):
-        policy = Policy(weekends=(SAT, SUN), holidays=holidays, working_hours=None)
+        policy = Policy(weekends=(SAT, SUN), holidays=holidays, hours=None)
         # Nominal
         self.assertEqual(policy.add_seconds(datetime(2011, 3, 3, 8, 30), 3600), datetime(2011, 3, 3, 9, 30))
         # During weekend
@@ -107,7 +107,7 @@ class TestAddition(unittest.TestCase):
     def test_add_seconds_night_shift(self):
         begin = time(8, 30)
         end = time(20, 30)
-        policy = Policy(weekends=(SAT, SUN), holidays=holidays, working_hours=(end, begin))
+        policy = Policy(weekends=(SAT, SUN), holidays=holidays, hours=(end, begin))
         # Nominal
         self.assertEqual(policy.add_seconds(datetime(2011, 3, 3, 5, 30), 3600), datetime(2011, 3, 3, 6, 30))
         self.assertEqual(policy.add_seconds(datetime(2011, 3, 2, 22, 30), 10800), datetime(2011, 3, 3, 1, 30))
@@ -115,7 +115,7 @@ class TestAddition(unittest.TestCase):
     def test_add(self):
         begin = time(8, 30)
         end = time(20, 30)
-        policy = Policy(weekends=(SAT, SUN), holidays=holidays, working_hours=(begin, end))
+        policy = Policy(weekends=(SAT, SUN), holidays=holidays, hours=(begin, end))
         # Nominal, just days
         self.assertEqual(policy.add(datetime(2011, 3, 3, 8, 30), timedelta(days=1)), datetime(2011, 3, 4, 8, 30))
         self.assertEqual(policy.add(datetime(2011, 3, 3, 8, 30), timedelta(days=2)), datetime(2011, 3, 7, 8, 30))
@@ -133,23 +133,23 @@ class TestNonWorkingHours(unittest.TestCase):
 
     def test_no_working_hours(self):
         policy = Policy(weekends=(SAT, SUN), holidays=holidays)
-        self.assertFalse(policy.is_non_working_hours(time(19, 25)))
+        self.assertFalse(policy.is_not_in_business_hours(time(19, 25)))
 
     def test_normal_hours(self):
         begin = time(8, 30)
         end = time(20, 30)
-        policy = Policy(weekends=(SAT, SUN), holidays=holidays, working_hours=(begin, end))
-        self.assertTrue(policy.is_non_working_hours(datetime(2011, 7, 1, 7, 0)))
-        self.assertFalse(policy.is_non_working_hours(datetime(2011, 7, 1, 17, 0)))
-        self.assertFalse(policy.is_non_working_hours(datetime(2011, 7, 1, 8, 30)))
+        policy = Policy(weekends=(SAT, SUN), holidays=holidays, hours=(begin, end))
+        self.assertTrue(policy.is_not_in_business_hours(datetime(2011, 7, 1, 7, 0)))
+        self.assertFalse(policy.is_not_in_business_hours(datetime(2011, 7, 1, 17, 0)))
+        self.assertFalse(policy.is_not_in_business_hours(datetime(2011, 7, 1, 8, 30)))
 
     def test_night_shift(self):
         begin = time(8, 30)
         end = time(20, 30)
-        policy = Policy(weekends=(SAT, SUN), holidays=holidays, working_hours=(end, begin))
-        self.assertFalse(policy.is_non_working_hours(datetime(2011, 7, 1, 7, 0)))
-        self.assertTrue(policy.is_non_working_hours(datetime(2011, 7, 1, 17, 0)))
-        self.assertFalse(policy.is_non_working_hours(datetime(2011, 7, 1, 8, 30)))
+        policy = Policy(weekends=(SAT, SUN), holidays=holidays, hours=(end, begin))
+        self.assertFalse(policy.is_not_in_business_hours(datetime(2011, 7, 1, 7, 0)))
+        self.assertTrue(policy.is_not_in_business_hours(datetime(2011, 7, 1, 17, 0)))
+        self.assertFalse(policy.is_not_in_business_hours(datetime(2011, 7, 1, 8, 30)))
 
 
 if __name__ == '__main__':
