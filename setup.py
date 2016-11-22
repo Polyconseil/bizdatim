@@ -6,7 +6,7 @@ setup(
     name="bizdatim",
     version="0.2",
     description="Module for performing simple business day arithmetic; forked from python-bizdatetime",
-    long_description=open("README.txt").read(),
+    long_description=open("README.rst").read(),
     author="Sergiy Kuzmenko",
     author_email="sergiy@kuzmenko.org",
     maintainer="Polyconseil Dev Team",
