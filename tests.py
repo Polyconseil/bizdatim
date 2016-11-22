@@ -2,7 +2,7 @@
 
 import unittest
 from datetime import date, datetime, time, timedelta
-from bizdatetime import Policy, MON, TUE, WED, THU, FRI, SAT, SUN
+from bizdatim import Policy, MON, TUE, WED, THU, FRI, SAT, SUN
 
 holidays = (
     date(2009, 12, 25), # xmas

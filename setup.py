@@ -3,20 +3,24 @@
 from distutils.core import setup
 
 setup(
-    name="python-bizdatetime",
-    version="0.1",
-    description="Module for performing simple business day arithmetic",
+    name="bizdatim",
+    version="0.2",
+    description="Module for performing simple business day arithmetic; forked from python-bizdatetime",
     long_description=open("README.txt").read(),
     author="Sergiy Kuzmenko",
     author_email="sergiy@kuzmenko.org",
-    url="https://bitbucket.org/shelldweller/python-bizdatetime",
-    py_modules=["bizdatetime"],
+    maintainer="Polyconseil Dev Team",
+    maintainer_email="opensource+bizdatim@polyconseil.fr",
+    url="https://github.com/Polyconseil/bizdatim",
+    py_modules=["bizdatim"],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Topic :: Office/Business :: Scheduling',
         'Topic :: Software Development :: Libraries :: Python Modules',
-    ]
+    ],
 )

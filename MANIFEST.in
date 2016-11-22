@@ -1,0 +1,9 @@
+include README.txt
+include LICENSE.txt
+include requirements_dev.txt
+include MANIFEST.in
+
+exclude tests.py
+exclude Makefile .flake8
+
+global-exclude *.py[cod] __pycache__ *.so .*.swp *~

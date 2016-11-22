@@ -1,7 +1,7 @@
 ABOUT
 =====
 
-python-bizdatetime is a simple library for performing business day arithmetic.
+bizdatim is a simple library for performing business day arithmetic.
 
 
 KNOWN LIMITATIONS
@@ -38,7 +38,7 @@ SAMPLE USAGE
 
 All business day arithmetic is performed in the context of policy::
     
->>> from bizdatetime import *
+>>> from bizdatim import Polycy, SAT, SUN
 >>> from datetime import date
 >>> policy = Policy(weekends=(SAT, SUN), holidays=(date(2011,7,1),))
 >>> day = date(2011, 6, 29) # Wednesday

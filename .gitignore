@@ -1,0 +1,23 @@
+# Temporary files
+.*.swp
+*.pyc
+*.pyo
+*.mo
+
+# Build-related files
+*.egg-info
+*.egg
+/docs/_build
+/build/
+/dist/
+/venv/
+MANIFEST
+
+# Coverage & co
+/reports/
+/.coveragerc
+
+# Project files
+/*.sublime-*
+/.idea/
+tags
