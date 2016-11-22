@@ -1,0 +1,4 @@
+-e .
+flake8
+check_manifest
+wheel
