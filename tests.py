@@ -5,28 +5,28 @@ from datetime import date, datetime, time, timedelta
 from bizdatim import Policy, MON, TUE, WED, THU, FRI, SAT, SUN
 
 holidays = (
-    date(2009, 12, 25), # xmas
-    date(2009, 12, 28), # boxing day in on
-    date(2010,  1,  1), # new year
-    date(2010,  2, 15), # family day
-    date(2010,  4,  2), # April 2. Good Friday
-    date(2010,  5, 24), # May 24. Victoria Day
-    date(2010,  7,  1), # July 1. Canada Day
-    date(2010,  8,  2), # August 2. Civic Holiday
-    date(2010,  9,  6), # September 6. Labour Day
-    date(2010, 10, 11), # October 11. Thanksgiving Day
-    date(2010, 12, 27), # December 27. Christmas Day
-    date(2010, 12, 28), # December 28. Boxing Day
-    date(2011,  1,  3), # moves to Monday
-    date(2011,  2, 21), # February 21. Family Day
-    date(2011,  4, 22), # Good Friday
-    date(2011,  5, 23), # Victoria Day
-    date(2011,  7,  1), # Canada Day
-    date(2011,  8,  1), # Civic Holiday
-    date(2011,  9,  5), # Labour Day
-    date(2011, 10, 10), # October 10. Thanksgiving Day
-    date(2011, 12, 26), # December 26. Christmas Day
-    date(2011, 12, 27), # December 27. Boxing Day
+    date(2009, 12, 25),  # xmas
+    date(2009, 12, 28),  # boxing day in on
+    date(2010, 1, 1),    # new year
+    date(2010, 2, 15),   # family day
+    date(2010, 4, 2),    # April 2. Good Friday
+    date(2010, 5, 24),   # May 24. Victoria Day
+    date(2010, 7, 1),    # July 1. Canada Day
+    date(2010, 8, 2),    # August 2. Civic Holiday
+    date(2010, 9, 6),    # September 6. Labour Day
+    date(2010, 10, 11),  # October 11. Thanksgiving Day
+    date(2010, 12, 27),  # December 27. Christmas Day
+    date(2010, 12, 28),  # December 28. Boxing Day
+    date(2011, 1, 3),    # moves to Monday
+    date(2011, 2, 21),   # February 21. Family Day
+    date(2011, 4, 22),   # Good Friday
+    date(2011, 5, 23),   # Victoria Day
+    date(2011, 7, 1),    # Canada Day
+    date(2011, 8, 1),    # Civic Holiday
+    date(2011, 9, 5),    # Labour Day
+    date(2011, 10, 10),  # October 10. Thanksgiving Day
+    date(2011, 12, 26),  # December 26. Christmas Day
+    date(2011, 12, 27),  # December 27. Boxing Day
 )
 
 
@@ -122,11 +122,15 @@ class TestAddition(unittest.TestCase):
         # Just days, non working hours
         self.assertEqual(policy.add(datetime(2011, 3, 3, 6, 30), timedelta(days=2)), datetime(2011, 3, 7, 8, 30))
         # Nominal
-        self.assertEqual(policy.add(datetime(2011, 3, 3, 8, 30), timedelta(days=2, hours=3)),
-            datetime(2011, 3, 7, 11, 30))
+        self.assertEqual(
+            policy.add(datetime(2011, 3, 3, 8, 30), timedelta(days=2, hours=3)),
+            datetime(2011, 3, 7, 11, 30),
+        )
         # Too many hours
-        self.assertEqual(policy.add(datetime(2011, 3, 3, 8, 30), timedelta(days=2, hours=15)),
-            datetime(2011, 3, 8, 11, 30))
+        self.assertEqual(
+            policy.add(datetime(2011, 3, 3, 8, 30), timedelta(days=2, hours=15)),
+            datetime(2011, 3, 8, 11, 30),
+        )
 
 
 class TestNonWorkingHours(unittest.TestCase):

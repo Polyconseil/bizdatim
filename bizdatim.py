@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
 """
 A class for calculating business date deltas based on a policy.
 
@@ -14,6 +18,8 @@ Definitions:
 
 """
 
+from datetime import datetime, time, timedelta
+
 MON = 0
 TUE = 1
 WED = 2
@@ -21,8 +27,6 @@ THU = 3
 FRI = 4
 SAT = 5
 SUN = 6
-
-from datetime import datetime, time, timedelta
 
 
 def set_time(day, hour):
@@ -182,7 +186,7 @@ class Policy(object):
             day2 = day2.date()
 
         n = 0
-        #FIXME: should probably use bisect here
+        # FIXME: should probably use bisect here
         for h in self._holidays:
             if h > day1:
                 if h >= day2:
